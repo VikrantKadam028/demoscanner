@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google" content="notranslate" />
+    <title>Translation</title>
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+          { pageLanguage: "en" },
+          "google_translate_element"
+        );
+      }
+    </script>
+    <script
+      type="text/javascript"
+      src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+    ></script>
+  </head>
+  <body>
+    <h1>Welcome to My Website</h1>
+
+    <select id="languageSelector" onchange="translatePage()">
+      <option value="">Select Language</option>
+      <option value="en">English</option>
+      <option value="mr">Marathi</option>
+      <option value="hi">Hindi</option>
+    </select>
+
+    <div id="google_translate_element" style="display: none"></div>
+
+    <script>
+      function translatePage() {
+        var language = document.getElementById("languageSelector").value;
+        var googleTranslateElement = document.querySelector(".goog-te-combo");
+
+        if (googleTranslateElement && language) {
+          googleTranslateElement.value = language;
+          googleTranslateElement.dispatchEvent(new Event("change"));
+        }
+      }
+    </script>
+  </body>
+</html>

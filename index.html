@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Scan - Barcode Scanner</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #3498db;
+        --secondary-color: #2980b9;
+        --background-color: #ecf0f1;
+        --text-color: #2c3e50;
+        --white: #ffffff;
+        --success-color: #2ecc71;
+        --error-color: #e74c3c;
+      }
+
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--background-color);
+        color: var(--text-color);
+      }
+
+      .container {
+        width: 100%;
+        max-width: 800px;
+        padding: 20px;
+        box-sizing: border-box;
+        background-color: var(--white);
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        color: var(--primary-color);
+        margin-bottom: 20px;
+      }
+
+      #scanner-container {
+        width: 100%;
+        height: 0;
+        padding-bottom: 75%;
+        position: relative;
+        overflow: hidden;
+        background-color: #000;
+        border-radius: 10px;
+      }
+
+      #scanner-container > video {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+      }
+
+      #interactive.viewport {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      #interactive.viewport > canvas,
+      #interactive.viewport > video {
+        max-width: 100%;
+        max-height: 100%;
+      }
+
+      #result,
+      #error-message {
+        margin-top: 20px;
+        font-size: 18px;
+        text-align: center;
+        background-color: var(--white);
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      #error-message {
+        color: var(--error-color);
+      }
+
+      .button-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+      }
+
+      button {
+        margin: 0 10px;
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: var(--primary-color);
+        color: var(--white);
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.1s;
+        display: flex;
+        align-items: center;
+      }
+
+      button:hover {
+        background-color: var(--secondary-color);
+      }
+
+      button:active {
+        transform: scale(0.98);
+      }
+
+      button i {
+        margin-right: 8px;
+      }
+
+      #product-list {
+        list-style-type: none;
+        padding: 0;
+      }
+
+      #product-list li {
+        background-color: var(--white);
+        margin: 10px 0;
+        padding: 15px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        transition: transform 0.2s;
+      }
+
+      #product-list li:hover {
+        transform: translateY(-2px);
+      }
+
+      #product-list img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        margin-right: 15px;
+        border-radius: 5px;
+      }
+
+      .product-info {
+        flex-grow: 1;
+      }
+
+      #total {
+        font-size: 24px;
+        font-weight: bold;
+        margin-top: 20px;
+        text-align: right;
+        color: var(--primary-color);
+      }
+
+      .scanner-animation {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          to bottom,
+          rgba(52, 152, 219, 0) 0%,
+          rgba(52, 152, 219, 0.8) 50%,
+          rgba(52, 152, 219, 0) 100%
+        );
+        animation: scan 2s ease-in-out infinite;
+        pointer-events: none;
+      }
+
+      @keyframes scan {
+        0%,
+        100% {
+          transform: translateY(-100%);
+        }
+        50% {
+          transform: translateY(100%);
+        }
+      }
+
+      #qr-code-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 20px;
+      }
+
+      #qr-code {
+        margin-bottom: 20px;
+      }
+
+      @media (max-width: 600px) {
+        .container {
+          padding: 10px;
+        }
+        h1 {
+          font-size: 24px;
+        }
+        #scanner-container {
+          padding-bottom: 100%;
+        }
+        #result,
+        button {
+          font-size: 16px;
+        }
+        #product-list img {
+          width: 60px;
+          height: 60px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" id="scanner-page">
+      <h1><i class="fas fa-barcode"></i> Smart Scan</h1>
+      <div id="scanner-container">
+        <div class="scanner-animation"></div>
+      </div>
+      <div id="result">Scan a barcode</div>
+      <div id="error-message"></div>
+      <div class="button-container">
+        <button id="start-button">
+          <i class="fas fa-play"></i> Start Scanner
+        </button>
+        <button id="stop-button">
+          <i class="fas fa-stop"></i> Stop Scanner
+        </button>
+      </div>
+    </div>
+
+    <div class="container" id="product-page" style="display: none">
+      <h1><i class="fas fa-shopping-cart"></i> Your Cart</h1>
+      <ul id="product-list"></ul>
+      <div id="total"></div>
+      <div class="button-container">
+        <button id="checkout-button">
+          <i class="fas fa-cash-register"></i> Checkout
+        </button>
+        <button id="scan-more-button">
+          <i class="fas fa-plus"></i> Scan More
+        </button>
+      </div>
+    </div>
+
+    <div class="container" id="checkout-page" style="display: none">
+      <h1><i class="fas fa-qrcode"></i> Checkout QR Code</h1>
+      <div id="qr-code-container">
+        <div id="qr-code"></div>
+        <p>Scan this QR code to complete your purchase</p>
+      </div>
+      <div class="button-container">
+        <button id="new-scan-button">
+          <i class="fas fa-redo"></i> New Scan
+        </button>
+      </div>
+    </div>
+
+    <audio
+      id="scan-sound"
+      src="store-scanner-beep-90395.mp3"
+      preload="auto"
+    ></audio>
+
+    <script>
+      const startButton = document.getElementById("start-button");
+      const stopButton = document.getElementById("stop-button");
+      const errorMessage = document.getElementById("error-message");
+      const result = document.getElementById("result");
+      const scannerPage = document.getElementById("scanner-page");
+      const productPage = document.getElementById("product-page");
+      const checkoutPage = document.getElementById("checkout-page");
+      const productList = document.getElementById("product-list");
+      const totalElement = document.getElementById("total");
+      const checkoutButton = document.getElementById("checkout-button");
+      const scanMoreButton = document.getElementById("scan-more-button");
+      const newScanButton = document.getElementById("new-scan-button");
+      const scanSound = document.getElementById("scan-sound"); // Reference to the audio element
+
+      let scannedProducts = [];
+      let total = 0;
+
+      // Simple product database
+      const products = {
+        8901030917035: {
+          name: "PONDs Silky Smooth Skin Cream",
+          price: 10,
+          image: "PondsTripleVitaminMoisturisingBo.png",
+        },
+        234567890123: { name: "Product 2", price: 14.99, image: "img2.jpg" },
+      };
+
+      // Debounce function to limit how frequently a function can be called
+      function debounce(func, wait) {
+        let timeout;
+        return function (...args) {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+      }
+
+      // Initialize Quagga (Barcode Scanner)
+      function initQuagga() {
+        Quagga.init(
+          {
+            inputStream: {
+              name: "Live",
+              type: "LiveStream",
+              target: document.querySelector("#scanner-container"),
+            },
+            decoder: {
+              readers: ["ean_reader", "upc_reader", "code_128_reader"],
+            },
+          },
+          function (err) {
+            if (err) {
+              console.log(err);
+              return;
+            }
+            Quagga.start();
+          }
+        );
+
+        // Debounced function to handle barcode detection
+        const handleDetection = debounce((data) => {
+          const code = data.codeResult.code;
+          if (products[code] && !scannedProducts.find((p) => p.code === code)) {
+            addProductToCart(products[code], code);
+            playScanSound(); // Play the sound effect
+          } else if (!products[code]) {
+            result.textContent = "Product not found.";
+            errorMessage.textContent = "Invalid Barcode";
+          }
+        }, 500); // Adjust debounce time as needed
+
+        Quagga.onDetected(handleDetection);
+      }
+
+      function playScanSound() {
+        scanSound.play(); // Play the sound effect
+      }
+
+      function addProductToCart(product, code) {
+        scannedProducts.push({ ...product, code }); // Include code to identify duplicates
+        total += product.price;
+        updateProductList();
+        showProductPage();
+      }
+
+      function updateProductList() {
+        productList.innerHTML = "";
+        scannedProducts.forEach((product) => {
+          const li = document.createElement("li");
+          li.innerHTML = `
+            <img src="${product.image}" alt="${product.name}">
+            <div class="product-info">
+                <h3>${product.name}</h3>
+                <p>$${product.price.toFixed(2)}</p>
+            </div>
+        `;
+          productList.appendChild(li);
+        });
+        totalElement.textContent = `Total: $${total.toFixed(2)}`;
+      }
+
+      function showScannerPage() {
+        scannerPage.style.display = "block";
+        productPage.style.display = "none";
+        checkoutPage.style.display = "none";
+      }
+
+      function showProductPage() {
+        scannerPage.style.display = "none";
+        productPage.style.display = "block";
+        checkoutPage.style.display = "none";
+      }
+
+      function showCheckoutPage() {
+        productPage.style.display = "none";
+        checkoutPage.style.display = "block";
+
+        // Generate QR code for checkout
+        const qrCodeElement = document.getElementById("qr-code");
+        qrCodeElement.innerHTML = ""; // Clear previous QR code
+        const checkoutQR = new QRCode(qrCodeElement, {
+          text: `CHECKOUT:${total.toFixed(2)}`,
+          width: 200,
+          height: 200,
+        });
+      }
+
+      // Event listeners for buttons
+      startButton.addEventListener("click", () => {
+        initQuagga();
+        result.textContent = "Scanning...";
+        errorMessage.textContent = "";
+      });
+
+      stopButton.addEventListener("click", () => {
+        Quagga.stop();
+        result.textContent = "Scanner stopped.";
+      });
+
+      checkoutButton.addEventListener("click", () => {
+        showCheckoutPage();
+      });
+
+      scanMoreButton.addEventListener("click", () => {
+        showScannerPage();
+      });
+
+      newScanButton.addEventListener("click", () => {
+        scannedProducts = [];
+        total = 0;
+        updateProductList();
+        showScannerPage();
+      });
+
+      // Initialize Quagga when the page loads
+      window.onload = () => {
+        initQuagga();
+      };
+    </script>
+  </body>
+</html>
