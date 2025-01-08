@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Barcode Scanner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode/minified/html5-qrcode.min.js"></script>
+
+
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .main {
+            width: 100vw;
+            height: 100vh;
+            overflow-y: hidden;
+        }
+
+        .top-box {
+            background-color: whitesmoke;
+            width: 95%;
+            height: 170px;
+            border-radius: 12px;
+            position: relative;
+            padding: 10px;
+            margin: 80px auto 0 auto;
+            display: flex;
+            align-items: center;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background-color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            margin-top: 15px;
+        }
+
+        .back-button:hover {
+            background-color: #f0f0f0;
+        }
+
+        .back-button img {
+            width: 16px;
+            height: 16px;
+            margin-right: 5px;
+        }
+
+        .left-box {
+            width: 60%;
+            height: 90%;
+            padding-right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .payment-label {
+            font-size: 14px;
+            color: #333;
+            /* margin-bottom: 5px; */
+        }
+
+        .payment-dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .dropdown-button {
+            width: 100%;
+            padding: 12px 15px;
+            background: transparent;
+            color: black;
+            border: 2px solid black;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dropdown-button:after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            color: black;
+            border-right: 2px solid black;
+            border-bottom: 2px solid black;
+            transform: rotate(45deg);
+            margin-left: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .dropdown-content {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-top: 5px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .dropdown-content.show {
+            display: block;
+        }
+
+        .dropdown-option {
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .dropdown-option:hover {
+            background-color: #f5f5f5;
+        }
+
+        .dropdown-option:first-child {
+            border-radius: 8px 8px 0 0;
+        }
+
+        .dropdown-option:last-child {
+            border-radius: 0 0 8px 8px;
+        }
+
+        .right-box {
+            width: 40%;
+            height: 90%;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #ffffff;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .right-box p:first-child {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .right-box p:nth-child(2) {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .right-box p:last-child {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .date {
+            width: 95%;
+            height: 50px;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #ffffff;
+            margin: 20px auto 0 auto;
+            border-radius: 20px;
+            display: flex;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+            padding: 0 15px;
+            font-size: 18px;
+            position: relative;
+            gap: 10px;
+        }
+
+        .edit-icon {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            filter: brightness(0) invert(1);
+        }
+
+        .calendar-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        #datetime-picker {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: white;
+            z-index: 1000;
+            display: none;
+        }
+
+        #datetime-picker.visible {
+            display: block;
+        }
+
+        input[type="date"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* From Uiverse.io by Yaya12085 */
+        /* The switch - the box around the slider */
+        .switch {
+            font-size: 17px;
+            position: relative;
+            display: inline-block;
+            width: auto;
+            height: 2.5em;
+        }
+
+
+        /* The slider */
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #fff;
+            color: #000;
+            font-weight: 600;
+            border-radius: 30px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "Retail";
+            height: 90%;
+            width: 48%;
+            left: 2%;
+            border-radius: 20px;
+            background-color: white;
+            color: green;
+            display: grid;
+            align-content: center;
+            justify-content: center;
+            box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.2), 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 -1px 0 0 rgba(0, 0, 0, 0.1) inset, 0 -1.31em 1.31em -1.31em rgba(0, 0, 0, 0.3) inset, 0 0 1px 0 rgba(0, 0, 0, 0.1);
+            text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.15);
+            transition: .4s;
+        }
+
+        .slider:after {
+            content: "";
+            position: absolute;
+            top: -7px;
+            left: -7px;
+            right: -7px;
+            bottom: -7px;
+            border-radius: 1.71em;
+            background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.1));
+            z-index: -1;
+        }
+
+        .switch input:checked+.slider {
+            background-color: white;
+            color: #fff;
+        }
+
+        .switch input:checked+.slider:before {
+            content: "Wholesale";
+            transform: translateX(100%);
+            color: red;
+        }
+
+        .switch input {
+            display: none;
+        }
+
+        .scanner{
+            width: 90%;
+            height: 230px;
+            background-color:black;
+            margin: 20px auto 0 auto;
+        }
+        /* .scanner {
+    width: 300px;
+    height: 300px;
+    border: 2px solid #ccc;
+    position: relative;
+    overflow: hidden;
+} */
+#resultContainer {
+    margin-top: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+}
+
+#scannedText {
+    color: #333;
+}
+
+    </style>
+</head>
+
+<body>
+    <div class="main">
+        <button class="back-button">
+            <img src="https://cdn-icons-png.flaticon.com/512/545/545680.png" alt="Back Icon" />
+        </button>
+        <div class="top-box">
+            <div class="left-box">
+                <label class="payment-label">Payment Type</label>
+                <div class="payment-dropdown">
+                    <button class="dropdown-button" id="paymentButton">
+                        Cash
+                    </button>
+                    <div class="dropdown-content" id="paymentOptions">
+                        <div class="dropdown-option" data-value="cash">Cash</div>
+                        <div class="dropdown-option" data-value="upi">UPI</div>
+                        <div class="dropdown-option" data-value="upi+cash">UPI + Cash</div>
+
+                    </div>
+                </div>
+
+                <label class="switch">
+                    <input type="checkbox">
+                    <div class="slider">
+                        <span></span>
+                        <span></span>
+                    </div>
+                </label>
+            </div>
+            <div class="right-box">
+                <p>Total (₹)</p>
+                <p>₹ 0.0</p>
+                <p>+ Tap to add discount</p>
+            </div>
+        </div>
+        <div class="date">
+            <span id="current-date"></span>
+            <div class="calendar-container">
+                <img src="https://cdn-icons-png.flaticon.com/512/1827/1827933.png" alt="Edit Icon" class="edit-icon"
+                    id="edit-icon" />
+                <input type="date" id="datetime-picker" />
+            </div>
+        </div>
+
+        <div class="scanner" id="scanner"></div>
+        <div id="resultContainer">
+            <p id="scannedText">Scan a barcode or QR code to see the result here.</p>
+        </div>
+    </div>
+    <script>
+document.addEventListener("DOMContentLoaded", () => {
+    const scannerDiv = document.getElementById("scanner");
+    const resultText = document.getElementById("scannedText");
+
+    const config = {
+        fps: 10, // Frames per second for the camera feed
+        qrbox: { width: 250, height: 250 }, // Define the scanning box size
+        aspectRatio: 1.0 // Adjust for camera feed aspect ratio
+    };
+
+    const onSuccess = (decodedText, decodedResult) => {
+        // Display the scanned barcode or QR code on the screen
+        resultText.textContent = `Scanned Code: ${decodedText}`; // Update the result container
+
+        // Optionally stop scanning after successful scan
+        html5QrcodeScanner.clear().catch(error => {
+            console.error("Error clearing scanner:", error);
+        });
+    };
+
+    const html5QrcodeScanner = new Html5QrcodeScanner("scanner", config, false);
+
+    html5QrcodeScanner.render(onSuccess, errorMessage => {
+        console.error("Scan Error:", errorMessage);
+    });
+});
+
+    
+        // DateTime functionality
+        let currentDateTime = new Date();
+
+        function updateDateTime() {
+            const dateElement = document.getElementById("current-date");
+            const options = {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+            };
+            dateElement.textContent = currentDateTime.toLocaleString(
+                undefined,
+                options
+            );
+        }
+
+        updateDateTime();
+
+        // Calendar functionality
+        const editIcon = document.getElementById("edit-icon");
+        const datePicker = document.getElementById("datetime-picker");
+
+        editIcon.addEventListener("click", () => {
+            datePicker.classList.toggle("visible");
+            if (datePicker.classList.contains("visible")) {
+                datePicker.focus();
+            }
+        });
+
+        datePicker.addEventListener("change", (event) => {
+            const newDate = new Date(event.target.value);
+            if (newDate) {
+                // Keep the current time
+                newDate.setHours(currentDateTime.getHours());
+                newDate.setMinutes(currentDateTime.getMinutes());
+
+                // Update the current datetime
+                currentDateTime = newDate;
+
+                // Update the display
+                updateDateTime();
+                datePicker.classList.remove("visible");
+            }
+        });
+
+        // Update time every minute
+        setInterval(() => {
+            currentDateTime.setMinutes(currentDateTime.getMinutes() + 1);
+            updateDateTime();
+        }, 60000);
+
+        // Payment dropdown functionality
+        const paymentButton = document.getElementById('paymentButton');
+        const paymentOptions = document.getElementById('paymentOptions');
+        const dropdownOptions = document.querySelectorAll('.dropdown-option');
+
+        paymentButton.addEventListener('click', () => {
+            paymentOptions.classList.toggle('show');
+        });
+
+        dropdownOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                paymentButton.textContent = option.textContent;
+                paymentOptions.classList.remove('show');
+            });
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener("click", (event) => {
+            if (!event.target.closest(".calendar-container")) {
+                datePicker.classList.remove("visible");
+            }
+            if (!event.target.closest('.payment-dropdown')) {
+                paymentOptions.classList.remove('show');
+            }
+        });
+
+        const toggleSwitch = document.getElementById("toggleSwitch");
+        const toggleText = document.getElementById("toggleText");
+
+        // Initialize mode
+        let isRetail = true;
+
+        toggleSwitch.addEventListener("click", () => {
+            isRetail = !isRetail;
+            toggleSwitch.classList.toggle("active", !isRetail);
+            toggleText.textContent = isRetail ? "Retail" : "Wholesale";
+        });
+
+    
+   
+</script>
+
+    </script>
+</body>
+
+</html>
